@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¿Es este link seguro?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f5f5f3;
+      --bg-info: #E6F1FB;
+      --bg-success: #EAF3DE;
+      --bg-warning: #FAEEDA;
+      --bg-danger: #FCEBEB;
+      --text: #1a1a18;
+      --text-secondary: #5a5a56;
+      --text-tertiary: #9a9a94;
+      --border: rgba(0,0,0,0.12);
+      --border-md: rgba(0,0,0,0.22);
+      --blue: #185FA5;
+      --blue-dark: #0C447C;
+      --green: #3B6D11;
+      --green-light: #EAF3DE;
+      --amber: #854F0B;
+      --amber-light: #FAEEDA;
+      --red: #A32D2D;
+      --red-light: #FCEBEB;
+      --radius: 10px;
+      --radius-lg: 14px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1a;
+        --bg-secondary: #252523;
+        --text: #f0ede8;
+        --text-secondary: #a8a8a0;
+        --text-tertiary: #666660;
+        --border: rgba(255,255,255,0.1);
+        --border-md: rgba(255,255,255,0.2);
+        --blue: #85B7EB;
+        --blue-dark: #B5D4F4;
+        --green: #97C459;
+        --green-light: #173404;
+        --amber: #EF9F27;
+        --amber-light: #412402;
+        --red: #F09595;
+        --red-light: #501313;
+      }
+    }
+
+    body {
+      font-family: 'Syne', system-ui, sans-serif;
+      background: var(--bg-secondary);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2.5rem 1rem 4rem;
+    }
+
+    .card {
+      background: var(--bg);
+      border-radius: var(--radius-lg);
+      border: 0.5px solid var(--border);
+      padding: 2rem 2rem 2.5rem;
+      max-width: 620px;
+      width: 100%;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 0.4rem;
+    }
+
+    .shield { width: 36px; height: 36px; flex-shrink: 0; }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.4px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 1.75rem;
+      line-height: 1.6;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 0.75rem;
+    }
+
+    .url-input {
+      flex: 1;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border-md);
+      border-radius: var(--radius);
+      background: var(--bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+      min-width: 0;
+    }
+
+    .url-input:focus { border-color: #378ADD; }
+    .url-input::placeholder { color: var(--text-tertiary); font-family: 'IBM Plex Mono', monospace; }
+
+    .btn-check {
+      padding: 11px 22px;
+      background: #185FA5;
+      color: #E6F1FB;
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-check:hover { background: #0C447C; }
+    .btn-check:active { transform: scale(0.97); }
+    .btn-check:disabled { background: var(--border); color: var(--text-tertiary); cursor: not-allowed; transform: none; }
+
+    .examples {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 1.75rem;
+      align-items: center;
+    }
+
+    .ex-label { font-size: 11px; color: var(--text-tertiary); }
+
+    .example-tag {
+      font-size: 11px;
+      font-family: 'IBM Plex Mono', monospace;
+      padding: 3px 9px;
+      border: 0.5px solid var(--border-md);
+      border-radius: 20px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      background: transparent;
+      transition: background 0.1s;
+    }
+
+    .example-tag:hover { background: var(--bg-secondary); }
+
+    .loading-row {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 0.75rem 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: #185FA5;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-row {
+      display: none;
+      padding: 10px 14px;
+      background: var(--red-light);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--red);
+      margin-bottom: 1rem;
+    }
+
+    .result-box {
+      border-radius: var(--radius-lg);
+      border: 0.5px solid var(--border);
+      overflow: hidden;
+      display: none;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 1rem 1.25rem;
+      border-bottom: 0.5px solid var(--border);
+      background: var(--bg-secondary);
+    }
+
+    .verdict-badge {
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Syne', sans-serif;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.2px;
+      flex-shrink: 0;
+    }
+
+    .verdict-safe       { background: var(--green-light); color: var(--green); }
+    .verdict-suspicious { background: var(--amber-light); color: var(--amber); }
+    .verdict-danger     { background: var(--red-light);   color: var(--red);   }
+
+    .url-analyzed {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .result-body { padding: 1.25rem; }
+
+    .risk-meter { margin-bottom: 1.25rem; }
+
+    .risk-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .meter-track {
+      height: 6px;
+      background: var(--bg-secondary);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .meter-fill {
+      height: 100%;
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.6s ease;
+    }
+
+    .fill-safe       { background: #639922; }
+    .fill-suspicious { background: #EF9F27; }
+    .fill-danger     { background: #E24B4A; }
+
+    .analysis-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+
+    .flags-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 1rem;
+    }
+
+    .flag-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .flag-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    .dot-red   { background: #E24B4A; }
+    .dot-amber { background: #EF9F27; }
+    .dot-green { background: #639922; }
+
+    .recommendation {
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    .rec-safe       { background: var(--green-light); color: var(--green); }
+    .rec-suspicious { background: var(--amber-light); color: var(--amber); }
+    .rec-danger     { background: var(--red-light);   color: var(--red);   }
+
+    .disclaimer {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-top: 1.5rem;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 1rem 0.75rem 3rem; }
+      .card { padding: 1.5rem 1.25rem 2rem; }
+      .input-row { flex-direction: column; }
+      .btn-check { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo-row">
+    <svg class="shield" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 3L6 8v10c0 7.18 5.2 13.89 12 15.5C24.8 31.89 30 25.18 30 18V8L18 3z" fill="#185FA5" opacity="0.12"/>
+      <path d="M18 3L6 8v10c0 7.18 5.2 13.89 12 15.5C24.8 31.89 30 25.18 30 18V8L18 3z" stroke="#185FA5" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M13 18l3.5 3.5 7-7" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1>¿Es este link seguro?</h1>
+  </div>
+  <p class="subtitle">Pegá cualquier link que recibiste por mail, WhatsApp, QR o redes sociales. Analizamos si es phishing, estafa o spam.</p>
+
+  <div class="input-row">
+    <input class="url-input" id="urlInput" type="text" placeholder="https://banco-oferta-especial.click/promo..." />
+    <button class="btn-check" id="checkBtn" onclick="checkURL()">Analizar</button>
+  </div>
+
+  <div class="examples">
+    <span class="ex-label">Ejemplos:</span>
+    <span class="example-tag" onclick="setExample('https://www.google.com')">google.com</span>
+    <span class="example-tag" onclick="setExample('http://banco-santander-oferta.xyz/login?redirect=verify')">link sospechoso</span>
+    <span class="example-tag" onclick="setExample('https://amaz0n-cuenta-verificar.tk/urgent')">posible estafa</span>
+  </div>
+
+  <div class="loading-row" id="loadingRow">
+    <div class="spinner"></div>
+    <span>Analizando el link con inteligencia artificial...</span>
+  </div>
+
+  <div class="error-row" id="errorRow"></div>
+
+  <div class="result-box" id="resultBox">
+    <div class="result-header">
+      <span class="verdict-badge" id="verdictBadge">—</span>
+      <span class="url-analyzed" id="urlAnalyzed"></span>
+    </div>
+    <div class="result-body">
+      <div class="risk-meter">
+        <div class="risk-label">
+          <span>Nivel de riesgo</span>
+          <span id="riskPct">—</span>
+        </div>
+        <div class="meter-track">
+          <div class="meter-fill" id="meterFill"></div>
+        </div>
+      </div>
+      <p class="analysis-text" id="analysisText"></p>
+      <div class="flags-list" id="flagsList"></div>
+      <div class="recommendation" id="recommendation"></div>
+    </div>
+  </div>
+
+  <p class="disclaimer">Esta herramienta usa IA para detectar patrones de riesgo. No es infalible — si tenés dudas, no hagas clic en el link y contactá directamente a la entidad por sus canales oficiales.</p>
+</div>
+
+<script>
+  function setExample(url) {
+    document.getElementById('urlInput').value = url;
+    document.getElementById('urlInput').focus();
+  }
+
+  document.getElementById('urlInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') checkURL();
+  });
+
+  async function checkURL() {
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) return;
+
+    const btn      = document.getElementById('checkBtn');
+    const loading  = document.getElementById('loadingRow');
+    const errorRow = document.getElementById('errorRow');
+    const resultBox = document.getElementById('resultBox');
+
+    btn.disabled = true;
+    loading.style.display = 'flex';
+    errorRow.style.display = 'none';
+    resultBox.style.display = 'none';
+
+    try {
+      // Llama a tu propio servidor — la API key nunca sale del backend
+      const response = await fetch('/api/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error al analizar el link');
+      }
+
+      renderResult(url, result);
+
+    } catch (err) {
+      errorRow.textContent = err.message || 'Error al analizar el link. Intentá de nuevo.';
+      errorRow.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      loading.style.display = 'none';
+    }
+  }
+
+  function renderResult(url, result) {
+    const box         = document.getElementById('resultBox');
+    const badge       = document.getElementById('verdictBadge');
+    const urlEl       = document.getElementById('urlAnalyzed');
+    const riskPct     = document.getElementById('riskPct');
+    const meterFill   = document.getElementById('meterFill');
+    const analysisText = document.getElementById('analysisText');
+    const flagsList   = document.getElementById('flagsList');
+    const rec         = document.getElementById('recommendation');
+
+    const verdictMap = {
+      seguro:     { label: 'Seguro',     badgeClass: 'verdict-safe',       fillClass: 'fill-safe',       recClass: 'rec-safe' },
+      sospechoso: { label: 'Sospechoso', badgeClass: 'verdict-suspicious', fillClass: 'fill-suspicious', recClass: 'rec-suspicious' },
+      peligroso:  { label: 'Peligroso',  badgeClass: 'verdict-danger',     fillClass: 'fill-danger',     recClass: 'rec-danger' }
+    };
+
+    const v = verdictMap[result.verdict] || verdictMap['sospechoso'];
+
+    badge.textContent = v.label;
+    badge.className = 'verdict-badge ' + v.badgeClass;
+    urlEl.textContent = url;
+    riskPct.textContent = result.riskScore + '% riesgo';
+
+    meterFill.className = 'meter-fill ' + v.fillClass;
+    setTimeout(() => { meterFill.style.width = result.riskScore + '%'; }, 60);
+
+    analysisText.textContent = result.summary;
+
+    flagsList.innerHTML = '';
+    (result.flags || []).forEach((flag, i) => {
+      const type = (result.flagTypes || [])[i] || 'amber';
+      const item = document.createElement('div');
+      item.className = 'flag-item';
+      item.innerHTML = `<div class="flag-dot dot-${type}"></div><span>${flag}</span>`;
+      flagsList.appendChild(item);
+    });
+
+    rec.textContent = result.recommendation;
+    rec.className = 'recommendation ' + v.recClass;
+
+    box.style.display = 'block';
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+</script>
+</body>
+</html>
